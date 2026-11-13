@@ -15,7 +15,11 @@ Windows SDK, and the Microsoft Edge WebView2 Runtime. Then run from the reposito
 The script runs Rust tests, builds release binaries and stages the application in
 `dist/LocalDrop-Windows/`. Keep `LocalDrop.exe` and `WebView2Loader.dll` together.
 Run the executable from a permanent folder before configuring its firewall rules.
-`CARGO_TARGET_DIR` is supported; output locations come from Cargo metadata.
+`CARGO_TARGET_DIR` is supported. Executable and WebView2 SDK locations come from
+Cargo's structured build messages, so both legacy and newer build-directory
+layouts are supported.
+Local builds default to two Cargo workers; `-Jobs 4` opts into more parallelism
+on a suitable machine. Hosted Windows CI uses four workers.
 
 An alternative toolchain is Rust's `stable-x86_64-pc-windows-gnullvm` plus LLVM-MinGW.
 Select that rustup toolchain, put its linker on PATH and set `LLVM_MINGW_HOME`.

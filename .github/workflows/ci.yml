@@ -41,7 +41,7 @@ jobs:
         run: rustup update stable --no-self-update
       - name: Build and test Windows package
         shell: pwsh
-        run: ./scripts/build-windows.ps1
+        run: ./scripts/build-windows.ps1 -Jobs 4
 
   android:
     name: Android ARM64
