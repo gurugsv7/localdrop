@@ -1,0 +1,68 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Rust core
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt
+      - name: Check Rust formatting
+        run: cargo +stable fmt --all -- --check
+      - name: Test shared core and JNI crate
+        run: cargo +stable test --locked -p localdrop-core -p localdrop-android -j 2
+
+  windows:
+    name: Windows desktop
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Rust
+        run: rustup update stable --no-self-update
+      - name: Build and test Windows package
+        shell: pwsh
+        run: ./scripts/build-windows.ps1
+
+  android:
+    name: Android ARM64
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Rust
+        run: rustup update stable --no-self-update
+      - name: Install pinned Android tools
+        shell: pwsh
+        run: |
+          & "$env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat" 'platforms;android-35' 'build-tools;35.0.0' 'ndk;27.2.12479018'
+          if ($LASTEXITCODE) { throw 'Android SDK setup failed' }
+          "ANDROID_NDK_HOME=$env:ANDROID_HOME\ndk\27.2.12479018" >> $env:GITHUB_ENV
+      - name: Build and lint APK
+        shell: pwsh
+        run: ./scripts/build-android.ps1
