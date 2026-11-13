@@ -14,11 +14,23 @@ images arrive as original file references.
 
 Transfers stay on your local network. No cloud, accounts, analytics or relay.
 
-![LocalDrop Windows and Android design reference](design/localdrop-transfer-desk-mockup.png)
+## Preview
 
-*The image above is the original design reference, generated with ChatGPT image
-generation. Both interfaces are implemented in the app; actual content, native
-fonts and responsive spacing vary. [Design notes →](design/DESIGN.md)*
+### Windows · actual app
+
+![LocalDrop running on Windows, showing Preferences](docs/screenshots/windows-preferences.jpg)
+
+*Captured from the running Windows app. Preferences is shown to keep private
+clipboard history and pairing codes out of the screenshot.*
+
+### Android · design mockup
+
+<p align="center">
+  <img src="docs/screenshots/android-mockup.png" width="320" alt="LocalDrop Android design mockup showing pairing, clipboard send, text composer and file actions">
+</p>
+
+*The mobile image is a ChatGPT-generated design reference. Native fonts, content
+and spacing in the installed Android app can vary. [Design notes →](design/DESIGN.md)*
 
 ## Get started
 
