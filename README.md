@@ -18,10 +18,10 @@ Transfers stay on your local network. No cloud, accounts, analytics or relay.
 
 ### Windows · actual app
 
-![LocalDrop running on Windows, showing Preferences](docs/screenshots/windows-preferences.jpg)
+![LocalDrop Windows Overview showing the paired device, clipboard hint and recent transfers with private text blurred](docs/screenshots/windows-overview-redacted.png)
 
-*Captured from the running Windows app. Preferences is shown to keep private
-clipboard history and pairing codes out of the screenshot.*
+*The real Windows Overview screen. Transfer filenames and clipboard previews are
+blurred for privacy; the paired device and transfer controls remain visible.*
 
 ### Android · design mockup
 
