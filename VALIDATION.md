@@ -29,9 +29,11 @@ are historical evidence, not claims of a new regression run.
 
 ## UI reference and contrast
 
-The image in the README is a generated design reference, not a live screenshot.
-The real Android and Windows layouts are implemented with native Views and local
-HTML/CSS respectively. No raster mockup is used as an app background.
+The README shows real Windows and Android screenshots supplied by the user.
+Private Windows transfer labels are locally blurred; Android image data is
+preserved while optional metadata is removed. The original generated design
+reference remains in `design/`. The interfaces use native Views and local
+HTML/CSS respectively; no raster mockup is used as an app background.
 
 The corrected Android secondary-action palette has these fixed-colour ratios:
 

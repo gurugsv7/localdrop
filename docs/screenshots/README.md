@@ -1,5 +1,9 @@
 # README images
 
+- `android-overview.jpg`: the real Android Overview screenshot supplied by the
+  user on 13 November 2026. EXIF/comment metadata was removed while preserving
+  the compressed image data byte-for-byte. The composer is empty and no private
+  clipboard preview or pairing code is visible.
 - `windows-overview-redacted.png`: the real Windows Overview screenshot supplied
   by the user on 13 November 2026. Three transfer-label regions (a filename and
   two clipboard URLs) were blurred locally before publication. All pixels outside
@@ -12,7 +16,8 @@
 - `android-mockup.png`: a standalone mobile design reference produced with built-in
   ChatGPT image generation from the Android panel of the original
   [design board](../../design/localdrop-transfer-desk-mockup.png). This is labelled
-  as a mockup in the main README.
+  as a mockup here and retained as a design reference; the main README now uses
+  the real Android screenshot.
 
 Mobile-image editing prompt: extract only the existing Android screen on the
 right of the original board; preserve its wording, graphite/orange/ivory palette,

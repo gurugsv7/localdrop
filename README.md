@@ -23,14 +23,14 @@ Transfers stay on your local network. No cloud, accounts, analytics or relay.
 *The real Windows Overview screen. Transfer filenames and clipboard previews are
 blurred for privacy; the paired device and transfer controls remain visible.*
 
-### Android · design mockup
+### Android · actual app
 
 <p align="center">
-  <img src="docs/screenshots/android-mockup.png" width="320" alt="LocalDrop Android design mockup showing pairing, clipboard send, text composer and file actions">
+  <img src="docs/screenshots/android-overview.jpg" width="320" alt="LocalDrop Android Overview showing the paired laptop, clipboard send, text composer and file actions">
 </p>
 
-*The mobile image is a ChatGPT-generated design reference. Native fonts, content
-and spacing in the installed Android app can vary. [Design notes →](design/DESIGN.md)*
+*Captured from the installed Android app. Both previews above show the actual
+interfaces. [Design notes →](design/DESIGN.md)*
 
 ## Get started
 
