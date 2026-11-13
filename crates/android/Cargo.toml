@@ -1,0 +1,16 @@
+[package]
+name = "localdrop-android"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+description = "Thin Android JNI bindings for the LocalDrop Rust core"
+[lib]
+crate-type = ["cdylib"]
+[dependencies]
+localdrop-core = { path = "../core" }
+anyhow.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+jni = { version = "0.21", default-features = false }

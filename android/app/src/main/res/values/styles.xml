@@ -1,0 +1,10 @@
+<resources>
+ <style name="LocalDropTheme" parent="android:style/Theme.Material.NoActionBar">
+  <item name="android:fontFamily">sans</item>
+  <item name="android:colorAccent">#F7845C</item>
+  <item name="android:windowBackground">#191C1B</item>
+  <item name="android:statusBarColor">#191C1B</item>
+  <item name="android:navigationBarColor">#191C1B</item>
+  <item name="android:windowLightStatusBar">false</item>
+ </style>
+</resources>
