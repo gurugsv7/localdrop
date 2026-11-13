@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/core", "crates/android"]
+members = ["crates/core", "crates/android", "desktop"]
 default-members = ["crates/core"]
 resolver = "2"
 

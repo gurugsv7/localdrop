@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>LocalDrop</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
+<body>
+<svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-mark" viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-8 8M10 21H3v-7M3 21l8-8"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 48 40"><rect x="7" y="3" width="34" height="26" rx="2"/><path d="M2 34h44"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 40"><rect x="3" y="2" width="18" height="35" rx="3"/><path d="M10 32h4"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 0 0-1 1v16h16V5a1 1 0 0 0-1-1h-4M9 3h6v4H9z"/></symbol>
+<symbol id="i-text" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1"/><path d="M8 7h8M8 11h8M8 15h5M8 18h6"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="1"/><circle cx="8" cy="8" r="2"/><path d="m3 19 6-6 4 4 4-7 5 8"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M5 2h10l5 5v15H5zM15 2v6h5"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M3 7h17m-5-5 5 5-5 5M21 17H4m5-5-5 5 5 5"/></symbol>
+</defs></svg>
+<header class="app-header"><a class="brand" href="#overview" aria-label="LocalDrop overview"><span class="mark"><svg><use href="#i-mark"/></svg></span><span>LocalDrop</span></a><span class="micro">LOCAL CONNECTION</span></header>
+<div class="workspace"><aside class="rail"><span class="micro rail-label">WORKSPACE</span><nav aria-label="Workspace"><button id="nav-overview" class="nav-item active" aria-current="page">Overview</button><button id="nav-preferences" class="nav-item">Preferences</button></nav><p class="rail-note">No cloud. Just nearby.</p></aside>
+<main><section id="overview" aria-labelledby="overview-title">
+<div class="intro"><span class="micro">01 / YOUR CONNECTION</span><h1 id="overview-title">Across the desk.</h1><p>A small bridge between your devices.</p></div>
+<section class="connection" aria-label="Paired device"><span id="pair-badge" class="badge waiting">GETTING READY</span><div class="route"><div class="device"><svg class="laptop"><use href="#i-laptop"/></svg><strong>This laptop</strong><span>Windows</span></div><div class="route-line" aria-hidden="true"><span></span><svg><use href="#i-mark"/></svg><span></span></div><div class="device"><svg class="phone"><use href="#i-phone"/></svg><strong id="device-name">Android phone</strong><span>Android</span></div></div><div class="connection-footer"><p id="pair-description">Checking your saved connection…</p><button id="pair" class="text-button">Pair a phone ↗</button></div><div id="qr" hidden></div></section>
+<section class="paste-strip" aria-label="Clipboard"><svg><use href="#i-clipboard"/></svg><strong id="paste-title">Your next share lands here.</strong><span class="key-hint" aria-label="Control V to paste"><kbd>Ctrl</kbd><span>+</span><kbd>V</kbd></span></section>
+<section class="history-section" aria-label="Recent transfers"><div class="section-heading"><h2 class="micro">RECENT TRANSFERS</h2><span class="micro">LATEST 3</span></div><div id="history" class="history"></div><div id="sequence" class="sequence" hidden><p>For apps that attach one image at a time.</p><button id="next" class="text-button">Copy next image ↗</button></div></section>
+<section class="reverse"><svg><use href="#i-swap"/></svg><div><h2>Back to your phone</h2><p>Queue your clipboard for Android</p></div><button id="send" class="outline">Send clipboard ↗</button></section>
+<p id="status" class="transfer-status" role="status">Starting local receiver…</p>
+</section>
+<section id="preferences" aria-labelledby="preferences-title" hidden><div class="intro"><span class="micro">02 / MAKE IT YOURS</span><h1 id="preferences-title">A quieter workspace.</h1><p>Only the things you need.</p></div>
+<section class="preference-group"><h2 class="micro">NOTIFICATIONS</h2><div class="setting-row"><div><label for="notifications">Receive & copy confirmations</label><p>Small desktop notices. Shared content stays private.</p></div><input type="checkbox" id="notifications" role="switch"></div><button id="test-notification" class="outline">Preview notification ↗</button></section>
+<section class="preference-group"><h2 class="micro">LOCAL STORAGE</h2><div class="setting-row"><div><label for="limit">File cache limit</label><p id="usage"></p></div><div class="cache-input"><input id="limit" aria-label="Cache limit in MiB" type="number" min="64" max="65536" step="64"><span>MiB</span><button id="save" class="outline">Save</button></div></div><p class="fineprint">Original files stay until you remove them. At the limit, incoming transfers pause. The overview shows only your latest three transfers.</p></section>
+<section class="preference-group"><h2 class="micro">A LITTLE LESS BACKGROUND</h2><p class="fineprint">Close this window to keep receiving in the tray. Phone transfers use the Android Share menu. Desktop notices pause on locked screens, during presentations and exclusive games.</p></section>
+</section>
+<footer><span><i class="dot"></i>Receiving in the tray</span><span class="micro">LOCAL / ENCRYPTED / YOURS</span></footer>
+</main></div><div id="toast" class="toast" role="status" hidden></div></body></html>
