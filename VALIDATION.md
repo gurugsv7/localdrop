@@ -6,6 +6,21 @@ app accepts that format.
 
 ## Observed local results
 
+### Android and Windows 0.4.0 — 2026-11-21
+
+- Rust core tests passed (6), plus desktop tests; the new interface enumeration
+  type-checks and passes clippy for `aarch64-linux-android`. Windows release
+  package and Android APK with lint built locally.
+- Installed in place on the paired Android 14 / ARM64 phone and the Windows
+  laptop; pairing and preferences were retained.
+- On the same home Wi-Fi, the phone had been failing with "No route to host"
+  because the old firewall rules allowed only one remote IP and Windows' own
+  prompt had added Public-profile Block rules. After `scripts/firewall.ps1`
+  replaced them with local-subnet rules, the port was reachable and Android
+  **Receive** pulled the laptop's text.
+- Not yet observed on hardware: a different Wi-Fi than the one used for pairing,
+  and the laptop joined to the phone's hotspot.
+
 ### Android 0.3.4 — 2026-11-18
 
 - APK, device-test APK and lint passed (0 errors, 27 warnings). Installed in place

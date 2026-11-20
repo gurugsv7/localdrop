@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-11-21 (Android and Windows)
 
 - Pairing no longer depends on the Wi-Fi it was made on. Android discovery now
   sends directed broadcasts on every local IPv4 interface, so a paired phone finds

@@ -3,7 +3,7 @@
   <h1>LocalDrop</h1>
   <p><strong>Share on Android. Paste on Windows.</strong></p>
   <p>A small, local clipboard bridge built with Rust, Kotlin and Tauri 2.</p>
-  <p><a href="https://github.com/gurugsv7/localdrop/releases/tag/v0.3.0">Download the preview</a> · <a href="docs/BUILDING.md">Build it yourself</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
+  <p><a href="https://github.com/gurugsv7/localdrop/releases/tag/v0.4.0">Download the preview</a> · <a href="docs/BUILDING.md">Build it yourself</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
   <p><a href="https://github.com/gurugsv7/localdrop/actions/workflows/ci.yml"><img src="https://github.com/gurugsv7/localdrop/actions/workflows/ci.yml/badge.svg" alt="Build and test"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-f7845c?labelColor=202522" alt="MIT license"></a></p>
 </div>
 
@@ -34,13 +34,13 @@ interfaces. [Design notes →](design/DESIGN.md)*
 
 ## Get started
 
-**Development preview · v0.3.0**
+**Development preview · v0.4.0**
 
 Windows 10/11 x64 · Android 8+ ARM64 · any shared Wi-Fi or phone hotspot
 
-1. Download [Windows](https://github.com/gurugsv7/localdrop/releases/download/v0.3.0/LocalDrop-Windows.zip)
-   and the [Android APK](https://github.com/gurugsv7/localdrop/releases/download/v0.3.0/LocalDrop-android-arm64-debug.apk).
-   Checksums are included with the [release](https://github.com/gurugsv7/localdrop/releases/tag/v0.3.0).
+1. Download [Windows](https://github.com/gurugsv7/localdrop/releases/download/v0.4.0/LocalDrop-Windows.zip)
+   and the [Android APK](https://github.com/gurugsv7/localdrop/releases/download/v0.4.0/LocalDrop-android-arm64-debug.apk).
+   Checksums are included with the [release](https://github.com/gurugsv7/localdrop/releases/tag/v0.4.0).
 2. Extract the Windows ZIP into a permanent folder and run **LocalDrop.exe**.
    Keep its DLLs beside it. The UI needs Microsoft Edge WebView2 Runtime.
    LocalDrop enables per-user Windows startup and receives from the tray.
