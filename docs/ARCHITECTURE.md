@@ -1,5 +1,16 @@
 # Architecture
 
+## Android home-screen receive widget
+
+`ReceiveWidget` supplies static native RemoteViews with an immutable, explicit
+activity PendingIntent. The provider has no network work, periodic update, or
+clipboard data. A tap opens `ReceiveActivity` in its own task, reusing the existing
+authenticated Rust pull operation. Network I/O runs off the UI thread; text is
+published only while the receive window has focus. The panel shows generic
+progress/results and supports retry. Pairing remains in app-private preferences.
+The standard launcher pin prompt is available from Preferences. No new permission,
+service, dependency, Accessibility access, or release-app test hook is required.
+
 LocalDrop has one protocol implementation and two thin OS integrations.
 
 ```text
@@ -76,10 +87,24 @@ which clipboard formats and attachment counts it accepts.
 
 ## Reverse direction
 
-Windows stages its current clipboard when **Send clipboard** is clicked. Android
-fetches that outbox when **Receive** is tapped. Text is copied while the Android
-activity is foreground; files are exposed through a read-only URI provider.
-There is no always-on Android receiver service.
+With Windows 0.3.1+, tapping **Receive** on Android requests the laptop's current
+clipboard directly from the tray receiver. The existing Android 0.3.0 request
+remains compatible. The clipboard is read once, after the trusted phone has
+authenticated. There is no polling watcher or clipboard-change listener.
+
+Text stays in memory; original file references are hashed and streamed in place.
+If a source changes or disappears during transfer, the batch fails rather than
+committing mixed bytes. Bitmap-only content uses a request-owned BMP spool that
+is removed after completion or cancellation. There is no growing Windows outbox
+of automatic clipboard snapshots. Protocol and configured transfer limits apply.
+
+**Queue a copy** is an optional manual snapshot for later; pending manual copies
+are delivered before the current clipboard. Windows Preferences can disable
+on-demand access without discarding explicitly queued copies. Empty or unsupported
+clipboard formats return no transfer instead of a previous clipboard snapshot.
+
+Text is copied while the Android activity is foreground; files are exposed
+through a read-only URI provider. There is no always-on Android receiver service.
 
 ## Resource and storage policy
 

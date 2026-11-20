@@ -185,34 +185,90 @@ pub fn is_local(ip: IpAddr) -> bool {
         }
     }
 }
+/// IPv4 broadcast targets for discovery: the limited broadcast plus the directed
+/// broadcast of every up, non-loopback IPv4 interface. Directed broadcasts matter
+/// when the default route is not the LAN, e.g. a phone sharing its hotspot while
+/// using mobile data, where 255.255.255.255 leaves via the cellular interface.
+pub fn broadcast_targets() -> Vec<Ipv4Addr> {
+    let mut targets = vec![Ipv4Addr::BROADCAST];
+    for (ip, mask) in ipv4_interfaces() {
+        if ip.is_loopback() || !is_local(IpAddr::V4(ip)) || mask == Ipv4Addr::BROADCAST {
+            continue;
+        }
+        let b = Ipv4Addr::from(u32::from(ip) | !u32::from(mask));
+        if !targets.contains(&b) {
+            targets.push(b);
+        }
+    }
+    targets
+}
+#[cfg(unix)]
+fn ipv4_interfaces() -> Vec<(Ipv4Addr, Ipv4Addr)> {
+    let mut out = Vec::new();
+    let mut head: *mut libc::ifaddrs = std::ptr::null_mut();
+    // SAFETY: getifaddrs allocates a linked list that we only read and then free.
+    unsafe {
+        if libc::getifaddrs(&mut head) != 0 {
+            return out;
+        }
+        let mut cur = head;
+        while !cur.is_null() {
+            let ifa = &*cur;
+            cur = ifa.ifa_next;
+            let up = ifa.ifa_flags & libc::IFF_UP as libc::c_uint != 0;
+            if !up || ifa.ifa_addr.is_null() || ifa.ifa_netmask.is_null() {
+                continue;
+            }
+            if (*ifa.ifa_addr).sa_family as i32 != libc::AF_INET {
+                continue;
+            }
+            let addr = &*(ifa.ifa_addr as *const libc::sockaddr_in);
+            let mask = &*(ifa.ifa_netmask as *const libc::sockaddr_in);
+            out.push((
+                Ipv4Addr::from(u32::from_be(addr.sin_addr.s_addr)),
+                Ipv4Addr::from(u32::from_be(mask.sin_addr.s_addr)),
+            ));
+        }
+        libc::freeifaddrs(head);
+    }
+    out
+}
+#[cfg(not(unix))]
+fn ipv4_interfaces() -> Vec<(Ipv4Addr, Ipv4Addr)> {
+    Vec::new()
+}
+/// Finds the paired laptop on whichever local network both devices share now:
+/// any Wi-Fi, or a hotspot in either direction. Pairing is bound to the key, not
+/// to the network or address that was current when the QR code was scanned.
 pub async fn discover(pair: &Pairing) -> Result<SocketAddr> {
     pair.key()?;
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.set_broadcast(true)?;
     let query = format!("localdrop/1 {}", pair.id);
-    let mut candidates = Vec::new();
+    let targets = broadcast_targets();
+    let mut buf = [0; 128];
+    // Two rounds tolerate a dropped datagram on busy or power-saving radios.
+    for round in 0..2 {
+        for t in &targets {
+            // One unreachable interface must not stop the others.
+            let _ = socket.send_to(query.as_bytes(), (*t, DISCOVERY_PORT)).await;
+        }
+        let deadline = tokio::time::Instant::now() + Duration::from_millis(500 + 250 * round);
+        while let Ok(Ok((n, from))) =
+            tokio::time::timeout_at(deadline, socket.recv_from(&mut buf)).await
+        {
+            if is_local(from.ip()) && &buf[..n] == query.as_bytes() {
+                return Ok(SocketAddr::new(from.ip(), pair.port));
+            }
+        }
+    }
+    // Last resort: the address recorded at pairing time, in case broadcasts are filtered.
     if let Ok(ip) = pair.host.parse::<IpAddr>() {
         if is_local(ip) {
-            candidates.push(SocketAddr::new(ip, pair.port));
+            return Ok(SocketAddr::new(ip, pair.port));
         }
     }
-    socket
-        .send_to(query.as_bytes(), (Ipv4Addr::BROADCAST, DISCOVERY_PORT))
-        .await?;
-    let deadline = tokio::time::Instant::now() + Duration::from_millis(750);
-    let mut buf = [0; 128];
-    while let Ok(Ok((n, from))) =
-        tokio::time::timeout_at(deadline, socket.recv_from(&mut buf)).await
-    {
-        if is_local(from.ip()) && &buf[..n] == query.as_bytes() {
-            candidates.insert(0, SocketAddr::new(from.ip(), pair.port));
-            break;
-        }
-    }
-    candidates
-        .into_iter()
-        .next()
-        .context("Laptop unavailable on local Wi-Fi")
+    anyhow::bail!("Laptop not found. Connect both devices to the same Wi-Fi or hotspot")
 }
 pub async fn advertise(id: String) -> Result<()> {
     let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, DISCOVERY_PORT)).await?;
@@ -377,6 +433,7 @@ mod tests {
         assert!(m.validate().is_err());
         assert!(!is_local("8.8.8.8".parse().unwrap()));
         assert!(is_local("192.168.1.4".parse().unwrap()));
+        assert!(broadcast_targets().contains(&Ipv4Addr::BROADCAST));
     }
     #[tokio::test]
     async fn encrypted_stream_and_retry() -> Result<()> {

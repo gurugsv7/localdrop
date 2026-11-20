@@ -22,6 +22,10 @@ clipboard history or unredacted logs. No response-time guarantee is offered.
   an arbitrary collection of devices. One trusted laptop is supported.
 - An authenticated peer can replace the clipboard and consume cache capacity.
   Files are not automatically opened and no remote-command feature exists.
+- With on-demand clipboard access enabled (Windows 0.3.1+), the paired phone
+  can also request the current Windows clipboard. Reads occur only after
+  authentication, on a Receive request. Disable **Phone clipboard access** in
+  Windows Preferences to stop live reads; explicitly queued copies remain available.
 - Local-network adversaries may observe discovery identifiers or disrupt
   availability. The protocol is intended for direct local connections, not
   Internet port forwarding.

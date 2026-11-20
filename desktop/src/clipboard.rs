@@ -77,11 +77,42 @@ pub fn read() -> Result<(Option<String>, Vec<PathBuf>, Option<Vec<u8>>)> {
         return Ok((None, paths.into_iter().map(PathBuf::from).collect(), None));
     }
     if raw::is_format_avail(8) || raw::is_format_avail(2) {
+        use windows_sys::Win32::Graphics::Gdi::{GetObjectW, BITMAP};
+        let handle = raw::get_clipboard_data(2)?;
+        let mut bitmap: BITMAP = unsafe { std::mem::zeroed() };
+        ensure!(
+            unsafe {
+                GetObjectW(
+                    handle.as_ptr(),
+                    std::mem::size_of::<BITMAP>() as i32,
+                    &mut bitmap as *mut BITMAP as _,
+                )
+            } != 0,
+            "Cannot inspect clipboard image"
+        );
+        ensure!(
+            bitmap.bmWidth > 0
+                && bitmap.bmHeight > 0
+                && bitmap.bmWidth <= 8192
+                && bitmap.bmHeight <= 8192
+                && (bitmap.bmWidth as u64) * (bitmap.bmHeight as u64) <= 16_000_000
+                && bitmap.bmPlanes > 0
+                && bitmap.bmBitsPixel > 0
+                && (bitmap.bmPlanes as u32) * (bitmap.bmBitsPixel as u32) <= 32,
+            "Clipboard image exceeds supported 16 megapixel limit"
+        );
         let mut bytes = vec![];
         raw::get_bitmap(&mut bytes)?;
         return Ok((None, vec![], Some(bytes)));
     }
-    let mut text = vec![];
-    raw::get_string(&mut text)?;
-    Ok((Some(String::from_utf8(text)?), vec![], None))
+    if raw::is_format_avail(13) {
+        ensure!(
+            raw::size(13).map(|n| n.get() <= 65_538).unwrap_or(false),
+            "Clipboard text exceeds 32 KiB limit"
+        );
+        let mut text = vec![];
+        raw::get_string(&mut text)?;
+        return Ok((Some(String::from_utf8(text)?), vec![], None));
+    }
+    Ok((None, vec![], None))
 }

@@ -49,6 +49,7 @@ async fn run_checks(root: PathBuf) -> Result<Vec<&'static str>> {
             paired: false,
             device_name: None,
             notifications: false,
+            receive_clipboard: true,
         },
         root: root.clone(),
         status: "Diagnostic".into(),
@@ -142,6 +143,110 @@ async fn run_checks(root: PathBuf) -> Result<Vec<&'static str>> {
     ensure!(received.text == reverse.text, "Reverse text mismatch");
     acknowledge(&mut s).await?;
     checks.push("Actual receiver: authenticated reverse queue retrieval");
+    drop(s);
+    // These pulls use the unchanged Android 0.3.0 wire request, without queueing.
+    for text in [
+        "Receive current clipboard: first",
+        "Receive current clipboard: second",
+    ] {
+        {
+            let _guard = Clipboard::new_attempts(20)?;
+            raw::set_string(text)?;
+        }
+        let (m, paths) = pull_for_check(&pair, &root)
+            .await?
+            .context("No live clipboard batch")?;
+        ensure!(
+            m.text.as_deref() == Some(text) && paths.is_empty(),
+            "Live pull returned stale text"
+        );
+    }
+    checks.push(
+        "Android-compatible Receive reads fresh Windows text on every request without queueing",
+    );
+    {
+        let _guard = Clipboard::new_attempts(20)?;
+        raw::set_file_list(&[a.to_string_lossy().as_ref()])?;
+    }
+    let (m, files) = pull_for_check(&pair, &root)
+        .await?
+        .context("No live file batch")?;
+    ensure!(
+        m.items.len() == 1 && std::fs::read(&files[0])? == std::fs::read(&a)?,
+        "Live clipboard file changed"
+    );
+    ensure!(a.exists(), "Original clipboard file was removed");
+    checks.push(
+        "Live clipboard file references stream their original bytes without deleting the source",
+    );
+    clipboard::next_image(&a)?;
+    let (m, files) = pull_for_check(&pair, &root)
+        .await?
+        .context("No live bitmap batch")?;
+    ensure!(
+        m.items.len() == 1 && m.items[0].mime == "image/bmp",
+        "Live bitmap missing"
+    );
+    let pixels = image::open(&files[0])?.into_rgb8();
+    ensure!(
+        pixels.dimensions() == (2, 3) && pixels.get_pixel(0, 0).0 == [12, 34, 56],
+        "Live bitmap pixels changed"
+    );
+    for _ in 0..100 {
+        if std::fs::read_dir(root.join("clipboard-snapshots"))?
+            .next()
+            .is_none()
+        {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(10)).await;
+    }
+    ensure!(
+        std::fs::read_dir(root.join("clipboard-snapshots"))?
+            .next()
+            .is_none(),
+        "Bitmap spool retained after acknowledgement"
+    );
+    checks.push("Live bitmap transfer retains pixels and clears only its temporary spool after acknowledgement");
+    {
+        let _guard = Clipboard::new_attempts(20)?;
+        raw::empty()?;
+    }
+    ensure!(
+        pull_for_check(&pair, &root).await?.is_none(),
+        "Empty clipboard resent old content"
+    );
+    checks.push("Empty clipboard returns empty instead of resending an old snapshot");
+    {
+        let _guard = Clipboard::new_attempts(20)?;
+        raw::set_string("Receive disabled test")?;
+    }
+    state.lock().unwrap().config.receive_clipboard = false;
+    ensure!(
+        pull_for_check(&pair, &root).await?.is_none(),
+        "Disabled clipboard access still sent content"
+    );
+    checks.push("Windows clipboard-access preference disables on-demand reads");
+    ensure!(
+        history(&root.join("outbox")).len() == 1,
+        "Live pulls accumulated outbox receipts"
+    );
     server.abort();
     Ok(checks)
+}
+
+async fn pull_for_check(
+    pair: &Pairing,
+    root: &std::path::Path,
+) -> Result<Option<(Manifest, Vec<PathBuf>)>> {
+    let mut session = connect(pair).await?;
+    session.send(b"pull").await?;
+    let marker = session.recv().await?;
+    if marker == b"empty" {
+        return Ok(None);
+    }
+    ensure!(marker == b"batch", "Unexpected pull response");
+    let received = receive_batch(&mut session, &root.join("live-android-inbox")).await?;
+    acknowledge(&mut session).await?;
+    Ok(Some(received))
 }

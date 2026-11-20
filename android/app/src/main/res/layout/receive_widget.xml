@@ -1,0 +1,9 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ android:id="@+id/receive_widget_button" android:layout_width="match_parent" android:layout_height="match_parent"
+ android:orientation="vertical" android:gravity="center_vertical" android:padding="12dp"
+ android:background="@drawable/widget_background" android:contentDescription="@string/receive_widget_description">
+ <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:text="@string/receive_widget_brand" android:textColor="#191C1B" android:textSize="10sp" android:textStyle="bold"/>
+ <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp"
+  android:text="@string/receive_widget_name" android:textColor="#191C1B" android:textSize="16sp" android:textStyle="bold" android:maxLines="2"/>
+</LinearLayout>

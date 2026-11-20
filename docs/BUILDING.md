@@ -83,6 +83,9 @@ permanent location:
 ./scripts/firewall.ps1 -Executable 'C:\Apps\LocalDrop\LocalDrop.exe'
 ```
 
-The script adds Private-profile, local-subnet inbound rules for TCP 45871 and UDP
-45872, scoped to that executable. It does not change the network profile or create
-Public-profile access. Review the script and use a trusted local network.
+The script adds local-subnet inbound rules for TCP 45871 and UDP 45872, scoped to
+that executable, on the Private and Public profiles. Windows classifies newly joined
+Wi-Fi networks and phone hotspots as Public, so Private-only rules silently block
+LocalDrop there. Re-running the script replaces existing LocalDrop rules. Pass
+`-PrivateOnly` to restrict access to Private networks; the script never changes a
+network's profile.

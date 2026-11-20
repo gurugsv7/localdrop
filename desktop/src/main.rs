@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod clipboard;
+mod live_clipboard;
 mod native_tray;
 #[path = "diagnostic.rs"]
 mod receiver_checks;
@@ -24,6 +25,8 @@ struct Config {
     device_name: Option<String>,
     #[serde(default = "default_on")]
     notifications: bool,
+    #[serde(default = "default_on")]
+    receive_clipboard: bool,
 }
 fn default_on() -> bool {
     true
@@ -45,6 +48,7 @@ struct View {
     paired: bool,
     device_name: String,
     notifications: bool,
+    receive_clipboard: bool,
 }
 fn used(path: &std::path::Path) -> u64 {
     std::fs::read_dir(path)
@@ -96,6 +100,7 @@ fn status(state: tauri::State<State>) -> View {
             .clone()
             .unwrap_or_else(|| "Your Android phone".into()),
         notifications: s.config.notifications,
+        receive_clipboard: s.config.receive_clipboard,
     }
 }
 #[tauri::command]
@@ -122,6 +127,12 @@ fn set_cache(mib: u64, state: tauri::State<State>) -> Result<(), String> {
 fn set_notifications(enabled: bool, state: tauri::State<State>) -> Result<(), String> {
     let mut s = state.lock().unwrap();
     s.config.notifications = enabled;
+    save(&s).map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn set_receive_clipboard(enabled: bool, state: tauri::State<State>) -> Result<(), String> {
+    let mut s = state.lock().unwrap();
+    s.config.receive_clipboard = enabled;
     save(&s).map_err(|e| e.to_string())
 }
 #[tauri::command]
@@ -397,6 +408,7 @@ async fn serve(state: State) -> Result<()> {
             }
             if mode == b"pull" {
                 let outbox = { state.lock().unwrap().root.join("outbox") };
+                let receive_clipboard = state.lock().unwrap().config.receive_clipboard;
                 let next = history(&outbox)
                     .into_iter()
                     .rev()
@@ -419,6 +431,22 @@ async fn serve(state: State) -> Result<()> {
                             "Sent to Android",
                             "Your phone received the queued transfer.",
                         );
+                    }
+                } else if receive_clipboard {
+                    let scratch = state.lock().unwrap().root.join("clipboard-snapshots");
+                    if let Some(snapshot) = live_clipboard::capture(scratch, cap).await? {
+                        session.send(b"batch").await?;
+                        send_batch(&mut session, &snapshot.manifest, &snapshot.paths).await?;
+                        let mut s = state.lock().unwrap();
+                        s.status = "Current clipboard received by your phone.".into();
+                        if s.config.notifications {
+                            native_tray::notify(
+                                "Sent to Android",
+                                "Your phone received the current clipboard.",
+                            );
+                        }
+                    } else {
+                        session.send(b"empty").await?;
                     }
                 } else {
                     session.send(b"empty").await?;
@@ -500,6 +528,7 @@ fn main() {
             next_image,
             send_clipboard,
             set_notifications,
+            set_receive_clipboard,
             test_notification
         ])
         .setup(|app| {
@@ -515,6 +544,7 @@ fn main() {
                     paired: false,
                     device_name: None,
                     notifications: true,
+                    receive_clipboard: true,
                 }
             } else {
                 serde_json::from_slice(&protect(&std::fs::read(root.join("config.bin"))?, false)?)?
@@ -575,7 +605,23 @@ mod settings_tests {
         let migrated: Config = serde_json::from_value(old).unwrap();
         assert!(migrated.pairing.key().is_ok());
         assert!(migrated.notifications);
+        assert!(migrated.receive_clipboard);
         assert!(!migrated.paired);
         assert!(migrated.device_name.is_none());
+    }
+    #[test]
+    fn disabled_clipboard_access_survives_configuration_round_trip() {
+        let config = Config {
+            pairing: Pairing::new("192.168.1.5".into()),
+            cache_mib: 1024,
+            paired: true,
+            device_name: Some("Android".into()),
+            notifications: true,
+            receive_clipboard: false,
+        };
+        let restored: Config =
+            serde_json::from_slice(&serde_json::to_vec(&config).unwrap()).unwrap();
+        assert!(!restored.receive_clipboard);
+        assert_eq!(restored.pairing.id, config.pairing.id);
     }
 }

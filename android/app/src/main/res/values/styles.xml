@@ -7,4 +7,10 @@
   <item name="android:navigationBarColor">#191C1B</item>
   <item name="android:windowLightStatusBar">false</item>
  </style>
+ <style name="ReceiveTheme" parent="android:style/Theme.Material.Dialog.NoActionBar">
+  <item name="android:fontFamily">sans</item>
+  <item name="android:colorAccent">#FF7D50</item>
+  <item name="android:windowBackground">#191C1B</item>
+  <item name="android:windowCloseOnTouchOutside">false</item>
+ </style>
 </resources>

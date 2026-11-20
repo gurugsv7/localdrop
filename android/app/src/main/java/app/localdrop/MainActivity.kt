@@ -103,7 +103,7 @@ class MainActivity : Activity(), SensorEventListener {
             setSpan(android.text.style.ForegroundColorSpan(if(paired)Desk.green else Desk.orange),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         badge.setTextColor(Desk.paper)
-        pairedDetail.text=if(paired)"Trusted over local Wi-Fi" else "Scan once to get started"
+        pairedDetail.text=if(paired)"Trusted over Wi-Fi or hotspot" else "Scan once to get started"
         managePairing.text=if(paired)"Manage pairing ↗" else "Pair your laptop ↗"
         status.text=preferences.getString("status",if(paired)"Trusted device. Ready for your next share." else "Scan once. Share whenever you need.")
         managePairing.visibility=View.VISIBLE
@@ -166,14 +166,15 @@ class MainActivity : Activity(), SensorEventListener {
         status.text="Checking your laptop…"
         Thread{
             val result=runCatching{Native.pull(preferences.getString("pair","")!!,File(filesDir,"inbox").absolutePath)}.getOrElse{"error:${it.message}"}
+            val exported=Gallery.summary(applicationContext,result)
             runOnUiThread{
                 if(isFinishing||isDestroyed)return@runOnUiThread
-                if(result.startsWith("error:")){status.text=result.removePrefix("error:");message("Laptop unavailable. Try again on the same Wi-Fi.")}
+                if(result.startsWith("error:")){status.text=result.removePrefix("error:");message("Laptop unavailable. Put both devices on the same Wi-Fi or hotspot.")}
                 else if(result.isEmpty()){status.text="No pending Windows transfers";message("No pending Windows transfers")}
                 else{
                     val m=JSONObject(result);val count=m.getJSONArray("items").length()
                     if(!m.isNull("text"))getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("LocalDrop",m.getString("text")))
-                    val summary=if(count==0)"Text received and copied to your clipboard." else "$count file(s) received. Open them in Preferences."
+                    val summary=exported ?: if(count==0)"Text received and copied to your clipboard." else "$count file(s) received. Open them in Preferences."
                     preferences.edit().putString("status",summary).apply();Alerts.show(this,"Received from Windows",summary);update()
                 }
             }
@@ -209,7 +210,7 @@ class MainActivity : Activity(), SensorEventListener {
         device.addView(icon("laptop",39))
         val names=Desk.column(this)
         names.addView(Desk.label(this,"Windows laptop",15f,Desk.paper,true))
-        pairedDetail=Desk.label(this,"Trusted over local Wi-Fi",11f,Desk.muted)
+        pairedDetail=Desk.label(this,"Trusted over Wi-Fi or hotspot",11f,Desk.muted)
         inset(names,pairedDetail,4)
         device.addView(names,LinearLayout.LayoutParams(0,-2,1f).apply{leftMargin=dp(12)})
         device.addView(DeskRoute(this),LinearLayout.LayoutParams(dp(88),dp(40)).apply{leftMargin=dp(6)})
@@ -298,6 +299,15 @@ class MainActivity : Activity(), SensorEventListener {
             Thread{val error=runCatching{Queue.sendAll(this)}.getOrElse{it.message?:"Transfer failed"};runOnUiThread{if(!isDestroyed){update();message(if(error.isEmpty())"All queued shares sent" else error)}}}.start()
         }
         button(transferOptions,"Open received files"){openReceived()}
+        button(transferOptions,"Save received photos / videos to Gallery"){
+            Thread{
+                val result=runCatching{Gallery.saveExisting(applicationContext)}
+                runOnUiThread{if(!isDestroyed)message(result.fold({"$it photo(s)/video(s) available in Gallery → LocalDrop"},{"Couldn’t save all media. Originals remain in received files."}))}
+            }.start()
+        }
+        button(transferOptions,"Add Receive home-screen widget"){
+            if(!ReceiveWidget.pin(this))message("Long-press your home screen → Widgets → LocalDrop → Receive from laptop.")
+        }
         text(transferOptions,"Tip: select text in another app → ⋮ → LocalDrop. Or share images, links and files from the Android Share menu.",12f)
 
         val notify=column(prefs,true)
@@ -351,12 +361,13 @@ class MainActivity : Activity(), SensorEventListener {
 
     private fun openReceived(){
         val batches=File(filesDir,"inbox").listFiles()?.filter{File(it,"receipt.json").exists()}?.sortedByDescending{it.lastModified()}?:emptyList()
-        val files=batches.flatMap{dir->dir.listFiles()?.filter{it.name!="receipt.json"}?:emptyList()}
+        val files=batches.flatMap{dir->dir.listFiles()?.filter{it.name!="receipt.json" && it.isFile}?:emptyList()}
         if(files.isEmpty()){message("No received files yet");return}
-        android.app.AlertDialog.Builder(this).setTitle("Received files").setItems(files.map{it.name}.toTypedArray()){_,i->
+        android.app.AlertDialog.Builder(this).setTitle("Received files · tap to open").setItems(files.map{it.name.replace(Regex("^\\d{3}_"),"")}.toTypedArray()){_,i->
             val file=files[i];val uri=android.net.Uri.Builder().scheme("content").authority("app.localdrop.received").appendPath(file.parentFile!!.name).appendPath(file.name).build()
             val mime=android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase())?:"application/octet-stream"
-            runCatching{startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}.onFailure{message("No app can open this type")}
+            if(mime.startsWith("image/"))ImagePreview.show(this,file)
+            else runCatching{startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}.onFailure{message("No app can open this type")}
         }.setNegativeButton("Close",null).show()
     }
     companion object {

@@ -1,0 +1,5 @@
+<resources>
+ <string name="receive_widget_name">Receive from laptop</string>
+ <string name="receive_widget_description">Tap to receive your laptop clipboard over local Wi-Fi.</string>
+ <string name="receive_widget_brand">LOCALDROP ↙</string>
+</resources>

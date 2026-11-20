@@ -6,6 +6,69 @@ app accepts that format.
 
 ## Observed local results
 
+### Android 0.3.4 — 2026-11-18
+
+- APK, device-test APK and lint passed (0 errors, 27 warnings). Installed in place
+  on the paired Android 14 / ARM64 phone; version code 6.
+- A synthetic one-second H.264 MP4 was placed on the Windows file-reference
+  clipboard and fetched through the production widget receive panel over Wi-Fi.
+  Android recognised the generic Windows MIME as video/mp4 by extension.
+- The Gallery video was published as a non-pending Movies/LocalDrop entry. Its
+  SHA-256 matched the laptop original, duration metadata was present and a frame
+  decoded at the expected dimensions. Re-exporting the same batch did not create
+  another copy. This does not verify every video codec or a hosted launcher tap.
+- Existing received media export completed; temporary test helper removed and
+  laptop clipboard restored. Windows Share-panel integration remains unsupported;
+  use File Explorer Ctrl+C, then Android Receive.
+
+### Android 0.3.3 — 2026-11-18
+
+- APK, device-test APK and lint passed (0 errors, 27 warnings). Installed in place
+  on the paired Android 14 / ARM64 phone; version code 5.
+- On-device MediaStore tests published PNG and Windows-style BMP fixtures into
+  `Pictures/LocalDrop`, verified public/non-pending rows and exact decoded pixels,
+  and confirmed repeat export did not duplicate the same batch. The internal
+  sampled BMP preview decoded successfully.
+- A synthetic native Windows clipboard bitmap crossed the real paired Wi-Fi
+  connection through the widget's production receive panel and appeared in
+  MediaStore as a PNG with exact pixels. The laptop clipboard was restored.
+- Existing received images were exported to the Gallery album. Test fixtures are
+  tiny 2×3 images; originals remain in the private inbox.
+- The temporary instrumentation package was removed. No Accessibility or
+  UiAutomation was used. The hosted launcher tap and visual Gallery-app UI were
+  not automated; Gallery availability was checked through its MediaStore source.
+
+### Android 0.3.2 — 2026-11-17
+
+- APK, device-test APK and Android lint built successfully (0 errors, 24 warnings;
+  warnings include localization, API-specific widget sizing and existing metadata).
+- Installed in place on the paired Android 14 / ARM64 phone; version code 4.
+- On-device instrumentation verified widget-provider registration, zero periodic
+  updates, successful RemoteViews inflation and a compact rendered preview.
+- The production receive panel fetched exact synthetic Windows clipboard text
+  through the existing pairing over real Wi-Fi and published it to the focused
+  Android clipboard. The native Rust library was unchanged.
+- No Accessibility or UiAutomation was used. The temporary test package was
+  uninstalled; the laptop's supported clipboard contents were restored.
+- Launcher placement and tapping the hosted widget remain a manual check using
+  the launcher's Add confirmation. The device test directly launched the panel.
+
+### Windows 0.3.1 — 2026-11-17
+
+- Release build passed; 11 Rust tests passed across the core and desktop.
+- Production receiver diagnostic passed all 10 checks using authenticated local
+  sessions and native Windows clipboard formats. New checks cover two successive
+  fresh text reads without queueing, original file bytes, bitmap pixels and spool
+  cleanup, empty clipboard handling, and disabling on-demand clipboard access.
+- Existing pairing migration and persistence of the disabled preference passed.
+  The frontend JavaScript syntax check and `git diff --check` also passed.
+- Installed the matching release executable and verified its TCP 45871 listener;
+  the existing encrypted configuration remains present. No Android update needed.
+- This iteration used the Android 0.3.0 wire request in the receiver diagnostic;
+  it did not rerun a physical-phone tap over Wi-Fi or inspect the new UI visually.
+
+### Earlier validation
+
 | Check | Result | Scope |
 | --- | --- | --- |
 | Rust core protocol tests | Passed | Authentication, bounds, streamed bytes, duplicate commits, interrupted batches, quotas |

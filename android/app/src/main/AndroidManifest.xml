@@ -9,6 +9,11 @@
   <provider android:name=".ReceivedProvider" android:authorities="app.localdrop.received" android:exported="false" android:grantUriPermissions="true"/>
   <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
   <activity android:name=".ScanActivity" android:exported="false"/>
+  <activity android:name=".ReceiveActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="app.localdrop.receive" android:launchMode="singleTask" android:configChanges="orientation|screenSize" android:theme="@style/ReceiveTheme"/>
+  <receiver android:name=".ReceiveWidget" android:label="@string/receive_widget_name" android:exported="false">
+   <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+   <meta-data android:name="android.appwidget.provider" android:resource="@xml/receive_widget"/>
+  </receiver>
   <activity android:name=".PickerActivity" android:exported="false"/>
   <activity android:name=".ProcessTextActivity" android:label="LocalDrop" android:exported="true" android:excludeFromRecents="true">
    <intent-filter><action android:name="android.intent.action.PROCESS_TEXT"/><category android:name="android.intent.category.DEFAULT"/><data android:mimeType="text/plain"/></intent-filter>

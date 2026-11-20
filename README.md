@@ -36,7 +36,7 @@ interfaces. [Design notes →](design/DESIGN.md)*
 
 **Development preview · v0.3.0**
 
-Windows 10/11 x64 · Android 8+ ARM64 · same trusted local Wi-Fi
+Windows 10/11 x64 · Android 8+ ARM64 · any shared Wi-Fi or phone hotspot
 
 1. Download [Windows](https://github.com/gurugsv7/localdrop/releases/download/v0.3.0/LocalDrop-Windows.zip)
    and the [Android APK](https://github.com/gurugsv7/localdrop/releases/download/v0.3.0/LocalDrop-android-arm64-debug.apk).
@@ -46,7 +46,11 @@ Windows 10/11 x64 · Android 8+ ARM64 · same trusted local Wi-Fi
    LocalDrop enables per-user Windows startup and receives from the tray.
 3. Install the APK on your phone. On Windows, choose **Pair a phone**.
    On Android, open **Preferences → Pairing → Scan laptop QR**.
-4. Allow LocalDrop through Windows Firewall on **Private** networks only.
+4. Allow LocalDrop through Windows Firewall. New Wi-Fi networks and phone hotspots
+   are usually **Public** on Windows, so allow both profiles (or run
+   `scripts/firewall.ps1`, which limits the rules to the local subnet).
+   Pairing is tied to the key, not the network: once paired, transfers work on any
+   Wi-Fi the two devices share, or when the laptop joins the phone's hotspot.
    Camera permission is used for QR scanning; Android notifications are optional.
 5. Share text, a link, an image or a file to **LocalDrop** from an Android app.
    Paste on Windows with **Ctrl+V**. The main Android screen does not need to be open.
@@ -80,9 +84,28 @@ guarantee that every destination app will accept every attachment.
 - **Already copied text:** open Android LocalDrop → **Send copied text**.
   Clipboard access happens only after a user action while the app is foreground.
 - **Write a quick note:** use the Android text composer and tap **Send text**.
-- **Windows → Android:** click **Send clipboard** on Windows, then **Receive**
-  on Android. Received files are available in Android Preferences.
+- **Windows → Android (Windows 0.3.1+):** copy on the laptop and tap **Receive**
+  on Android. Windows LocalDrop can stay in the tray; no **Send clipboard** click
+  is needed. **Queue a copy** optionally saves a specific copy for later; queued
+  transfers arrive first. Received files are available in Android Preferences.
 - **Quick Settings:** the LocalDrop tile opens the document picker.
+- **Home-screen Receive widget (Android 0.3.2+):** in Preferences, tap
+  **Add Receive home-screen widget**, or use your launcher's Widgets picker.
+  Tap the widget to fetch the laptop clipboard into a compact receive panel.
+  Text is copied to the phone; files remain available in Preferences. Requires
+  Windows 0.3.1+ for the current clipboard. The widget has no polling or service.
+- **Received images (Android 0.3.3+):** automatically saved to Gallery's
+  **LocalDrop** album (`Pictures/LocalDrop`) on Android 10+. Clipboard BMPs are
+  converted to PNG. Tap an image in **Preferences → Open received files** to
+  preview it inside LocalDrop. **Save received images to Gallery** exports older
+  batches too. Android 8–9 retain the private inbox and preview without automatic
+  shared-storage export.
+- **Received videos (Android 0.3.4+):** automatically saved to Gallery's
+  **LocalDrop** album (`Movies/LocalDrop`) on Android 10+. Original video bytes
+  are preserved; playback depends on the phone's codec support. To transfer from
+  Windows, select the video in File Explorer, press **Ctrl+C**, and tap the phone's
+  Receive widget. LocalDrop is currently **not a Windows Share-panel target**.
+  **Save received photos / videos to Gallery** also exports older received media.
 - **Shake:** optional, adjustable, and active only while LocalDrop is open.
 
 ## Built to stay small
@@ -96,6 +119,7 @@ on Windows; the receiver, tray and desktop confirmations are native Rust/Win32.
 - No webview at Windows tray idle after the app window is closed.
 - Bounded file chunks and asynchronous I/O.
 - Durable Android outbox with OS-scheduled retries.
+- On-demand laptop clipboard reads when the paired phone taps **Receive**.
 - Generic, non-focusing desktop confirmations that disappear after five seconds.
 
 These are implementation choices, not a promise of zero memory use. Broader
